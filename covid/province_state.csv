@@ -1,0 +1,324 @@
+,Province/State_noquotes
+0,British Columbia
+1,New South Wales
+2,Victoria
+3,Queensland
+4,South Australia
+5,From Diamond Princess
+6,Western Australia
+7,Tasmania
+8,Northern Territory
+9,Ontario
+10,Alberta
+11,Quebec
+12,Washington
+13,New York
+14,California
+15,Massachusetts
+16,Georgia
+17,Colorado
+18,Florida
+19,New Jersey
+20,Oregon
+21,Texas
+22,Illinois
+23,Pennsylvania
+24,Iowa
+25,Maryland
+26,North Carolina
+27,South Carolina
+28,Tennessee
+29,Virginia
+30,Arizona
+31,Indiana
+32,Kentucky
+33,District of Columbia
+34,Nevada
+35,New Hampshire
+36,Minnesota
+37,Nebraska
+38,Ohio
+39,Rhode Island
+40,Wisconsin
+41,Connecticut
+42,Hawaii
+43,Oklahoma
+44,Utah
+45,Kansas
+46,Louisiana
+47,Missouri
+48,Vermont
+49,Alaska
+50,Arkansas
+51,Delaware
+52,Idaho
+53,Maine
+54,Michigan
+55,Mississippi
+56,Montana
+57,New Mexico
+58,North Dakota
+59,South Dakota
+60,West Virginia
+61,Wyoming
+62,Hubei
+63,France
+64,Guangdong
+65,Henan
+66,Zhejiang
+67,Hunan
+68,Anhui
+69,Jiangxi
+70,Shandong
+71,Diamond Princess
+72,Jiangsu
+73,Chongqing
+74,Sichuan
+75,Heilongjiang
+76,Denmark
+77,Beijing
+78,Shanghai
+79,Hebei
+80,Fujian
+81,Guangxi
+82,Shaanxi
+83,Yunnan
+84,Hainan
+85,Guizhou
+86,Tianjin
+87,Shanxi
+88,Gansu
+89,Hong Kong
+90,Liaoning
+91,Jilin
+92,Xinjiang
+93,Inner Mongolia
+94,Ningxia
+95,Qinghai
+96,Macau
+97,Faroe Islands
+98,St Martin
+99,Channel Islands
+100,New Brunswick
+101,Tibet
+102,Saint Barthelemy
+103,Gibraltar
+104,"Kitsap, WA"
+105,"Solano, CA"
+106,"Santa Cruz, CA"
+107,"Napa, CA"
+108,"Ventura, CA"
+109,"Worcester, MA"
+110,"Gwinnett, GA"
+111,"DeKalb, GA"
+112,"Floyd, GA"
+113,"Fayette, GA"
+114,"Gregg, TX"
+115,"Monmouth, NJ"
+116,"Burlington, NJ"
+117,"Camden, NJ"
+118,"Passaic, NJ"
+119,"Union, NJ"
+120,"Eagle, CO"
+121,"Larimer, CO"
+122,"Arapahoe, CO"
+123,"Gunnison, CO"
+124,"Kane, IL"
+125,"Monroe, PA"
+126,"Philadelphia, PA"
+127,"Norfolk, VA"
+128,"Arlington, VA"
+129,"Spotsylvania, VA"
+130,"Loudoun, VA"
+131,"Prince George's, MD"
+132,"Pottawattamie, IA"
+133,"Camden, NC"
+134,"Pima, AZ"
+135,"Noble, IN"
+136,"Adams, IN"
+137,"Boone, IN"
+138,"Dane, WI"
+139,"Pierce, WI"
+140,"Cuyahoga, OH"
+141,"Weber, UT"
+142,"Bennington County, VT"
+143,"Carver County, MN"
+144,"Charlotte County, FL"
+145,"Cherokee County, GA"
+146,"Collin County, TX"
+147,"Jefferson County, KY"
+148,"Jefferson Parish, LA"
+149,"Shasta County, CA"
+150,"Spartanburg County, SC"
+151,"Harrison County, KY"
+152,"Johnson County, IA"
+153,"Berkshire County, MA"
+154,"Davidson County, TN"
+155,"Douglas County, OR"
+156,"Fresno County, CA"
+157,"Harford County, MD"
+158,"Hendricks County, IN"
+159,"Hudson County, NJ"
+160,"Johnson County, KS"
+161,"Kittitas County, WA"
+162,"Manatee County, FL"
+163,"Marion County, OR"
+164,"Okaloosa County, FL"
+165,"Polk County, GA"
+166,"Riverside County, CA"
+167,"Shelby County, TN"
+168,"St. Louis County, MO"
+169,"Suffolk County, NY"
+170,"Ulster County, NY"
+171,"Volusia County, FL"
+172,"Fairfax County, VA"
+173,"Rockingham County, NH"
+174,"Washington, D.C."
+175,"Montgomery County, PA"
+176,"Alameda County, CA"
+177,"Broward County, FL"
+178,"Lee County, FL"
+179,"Pinal County, AZ"
+180,"Rockland County, NY"
+181,"Saratoga County, NY"
+182,"Charleston County, SC"
+183,"Clark County, WA"
+184,"Cobb County, GA"
+185,"Davis County, UT"
+186,"El Paso County, CO"
+187,"Honolulu County, HI"
+188,"Jackson County, OR "
+189,"Jefferson County, WA"
+190,"Kershaw County, SC"
+191,"Klamath County, OR"
+192,"Madera County, CA"
+193,"Pierce County, WA"
+194,"Tulsa County, OK"
+195,"Douglas County, CO"
+196,"Providence County, RI"
+197,"Chatham County, NC"
+198,"Delaware County, PA"
+199,"Douglas County, NE"
+200,"Fayette County, KY"
+201,"Marion County, IN"
+202,"Middlesex County, MA"
+203,"Nassau County, NY"
+204,"Ramsey County, MN"
+205,"Washoe County, NV"
+206,"Wayne County, PA"
+207,"Yolo County, CA"
+208,"Santa Clara County, CA"
+209,"Clark County, NV"
+210,"Fort Bend County, TX"
+211,"Grant County, WA"
+212,"Santa Rosa County, FL"
+213,"Williamson County, TN"
+214,"New York County, NY"
+215,"Montgomery County, MD"
+216,"Suffolk County, MA"
+217,"Denver County, CO"
+218,"Summit County, CO"
+219,"Bergen County, NJ"
+220,"Harris County, TX"
+221,"San Francisco County, CA"
+222,"Contra Costa County, CA"
+223,"Orange County, CA"
+224,"Norfolk County, MA"
+225,"Maricopa County, AZ"
+226,"Wake County, NC"
+227,"Westchester County, NY"
+228,"Grafton County, NH"
+229,"Hillsborough, FL"
+230,"Placer County, CA"
+231,"San Mateo, CA"
+232,"Sonoma County, CA"
+233,"Umatilla, OR"
+234,"Fulton County, GA"
+235,"Washington County, OR"
+236,"Snohomish County, WA"
+237,"Humboldt County, CA"
+238,"Sacramento County, CA"
+239,"San Diego County, CA"
+240,"San Benito, CA"
+241,"Los Angeles, CA"
+242,"King County, WA"
+243,"Cook County, IL"
+244,"Skagit, WA"
+245,"Thurston, WA"
+246,"Island, WA"
+247,"Whatcom, WA"
+248,"Marin, CA"
+249,"Calaveras, CA"
+250,"Stanislaus, CA"
+251,"San Joaquin, CA"
+252,"Essex, MA"
+253,"Charlton, GA"
+254,"Collier, FL"
+255,"Pinellas, FL"
+256,"Alachua, FL"
+257,"Nassau, FL"
+258,"Pasco, FL"
+259,"Dallas, TX"
+260,"Tarrant, TX"
+261,"Montgomery, TX"
+262,"Middlesex, NJ"
+263,"Jefferson, CO"
+264,"Multnomah, OR"
+265,"Polk, OR"
+266,"Deschutes, OR"
+267,"McHenry, IL"
+268,"Lake, IL"
+269,"Bucks, PA"
+270,"Hanover, VA"
+271,"Lancaster, SC"
+272,"Sullivan, TN"
+273,"Johnson, IN"
+274,"Howard, IN"
+275,"St. Joseph, IN"
+276,"Knox, NE"
+277,"Stark, OH"
+278,"Anoka, MN"
+279,"Olmsted, MN"
+280,"Summit, UT"
+281,"Fairfield, CT"
+282,"Litchfield, CT"
+283,"Orleans, LA"
+284,"Pennington, SD"
+285,"Beadle, SD"
+286,"Charles Mix, SD"
+287,"Davison, SD"
+288,"Minnehaha, SD"
+289,"Bon Homme, SD"
+290,"Socorro, NM"
+291,"Bernalillo, NM"
+292,"Oakland, MI"
+293,"Wayne, MI"
+294,"New Castle, DE"
+295,Australian Capital Territory
+296,United Kingdom
+297,French Polynesia
+298,Manitoba
+299,Saskatchewan
+300,Grand Princess
+301,Alabama
+302,Puerto Rico
+303,French Guiana
+304,Guam
+305,Newfoundland and Labrador
+306,Prince Edward Island
+307,Mayotte
+308,Netherlands
+309,Nova Scotia
+310,Guadeloupe
+311,Curacao
+312,Virgin Islands
+313,Cayman Islands
+314,Reunion
+315,Aruba
+316,Montserrat
+317,Greenland
+318,New Caledonia
+319,Bermuda
+320,Sint Maarten
+321,Isle of Man
+322,No province/state
