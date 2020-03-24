@@ -13,6 +13,20 @@ url_csv_confirmed = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/m
 url_csv_recovered = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv"
 url_csv_deaths = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv"
 
+sources = {
+    "confirmed": {
+        "url": "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv",
+        "local_path": "data/cases_confirmed.csv"
+    },
+    "recovered": {
+        "url": "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv",
+        "local_path": "data/cases_recovered.csv"    
+    },
+    "deaths": {
+        "url": "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv",
+        "local_path": "data/cases_deaths.csv"
+    },
+}
 
 def make_dataframe(url, data_format="csv"):
     if data_format == "xls":
@@ -39,6 +53,20 @@ def getData(url):
 def makeReferenceData():
     continents = ["Africa", "Antarctica", "Asia", "Europe", "North America", "Oceania", "South America", "None"]
     continents_df = pd.DataFrame(continents)
+    return continents_df
+
+def prepData(data_type):
+    df = pd.read_csv(sources[data_type]['url'])
+
+def checkDataChange(data_type):
+    old_data = pd.read_csv(sources[data_type]['local_path'])
+    old_size = old_data.size
+    
+    new_data = pd.read_csv(sources[data_type]['url'])
+    new_size = new_data.size
+    if old_size!=new_size:
+        print("Data size mismatch: Old: ",  str(old_size), "; New: ", str(new_size))
+
 
 if __name__ == '__main__':
     url = str(sys.argv[1])
