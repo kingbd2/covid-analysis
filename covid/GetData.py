@@ -8,6 +8,12 @@ import sys
 
 url_test = "https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide"
 url_test_csv = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv"
+
+url_csv_confirmed = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv"
+url_csv_recovered = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv"
+url_csv_deaths = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv"
+
+
 def make_dataframe(url, data_format="csv"):
     if data_format == "xls":
         page = requests.get(url).text
@@ -25,6 +31,14 @@ def make_dataframe(url, data_format="csv"):
         dataframe = pd.read_csv(url)
         return dataframe
 
+def getData(url):
+    """Input url of csv, returns dataframe"""
+    df = pd.read_csv(url)
+    return df
+
+def makeReferenceData():
+    continents = ["Africa", "Antarctica", "Asia", "Europe", "North America", "Oceania", "South America", "None"]
+    continents_df = pd.DataFrame(continents)
 
 if __name__ == '__main__':
     url = str(sys.argv[1])
