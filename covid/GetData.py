@@ -49,12 +49,17 @@ class CovidDataset:
         df = pd.read_csv(self.sources[str(data_type)]['local_path'])
         return df
 
-    def makeReferenceData(self):
+    def createNewReferenceData(self):
+        continents = ["Africa", "Antarctica", "Asia", "Europe", "North America", "Oceania", "South America", "None"]
+        continents_df = pd.DataFrame(continents)
+        return continents_df
+    
+    def loadOldReferenceData(self):
         continents = ["Africa", "Antarctica", "Asia", "Europe", "North America", "Oceania", "South America", "None"]
         continents_df = pd.DataFrame(continents)
         return continents_df
 
-    def prepData(self):
+    def standardizeNewData(self):
         full_dataset_cleaned = []
         for i, dataset in enumerate(self.full_dataset_raw):
             countries = dataset['new'].iloc[:,:4]
