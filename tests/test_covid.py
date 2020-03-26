@@ -1,5 +1,5 @@
 from covid import __version__
-from covid import GetData
+from covid import GetData.CovidDataset
 
 def test_version():
     assert __version__ == '0.1.0'

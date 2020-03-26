@@ -13,6 +13,7 @@ jupyterlab = "^2.0.1"
 requests = "^2.23.0"
 xlrd = "^1.2.0"
 black = "^19.10b0"
+pydantic = "^1.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

@@ -11,16 +11,16 @@ class CovidDataset:
     def __init__(self):
         self.sources = {
             "confirmed": {
-                "url": "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv",
+                "url": "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv",
                 "local_path": "data/timeseries/cases_confirmed.csv"
             },
             "recovered": {
-                "url": "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv",
-                "local_path": "data/timeseries/cases_recovered.csv"    
+                "url": "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv",
+                "local_path": "data/timeseries/cases_confirmed.csv"    
             },
             "deaths": {
-                "url": "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv",
-                "local_path": "data/timeseries/cases_deaths.csv"
+                "url": "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv",
+                "local_path": "data/timeseries/cases_confirmed.csv"
             },
         }
         self.confirmed_data_raw = {
@@ -37,7 +37,10 @@ class CovidDataset:
             }
         self.full_dataset_raw = [self.confirmed_data_raw, self.recovered_data_raw, self.deaths_data_raw]
 
-        self.reference_data = self.makeReferenceData()
+        self.old_reference_data = self.loadOldReferenceData()
+        self.needs_reference_data_refresh = False
+        self.needs_timeseries_data_refresh = False
+
 
     def getNewData(self, data_type):
         """Input url of csv, returns dataframe"""
@@ -50,14 +53,44 @@ class CovidDataset:
         return df
 
     def createNewReferenceData(self):
+        # Continents reference data
         continents = ["Africa", "Antarctica", "Asia", "Europe", "North America", "Oceania", "South America", "None"]
         continents_df = pd.DataFrame(continents)
-        return continents_df
+        # Types reference data
+        types_df = pd.DataFrame(["Confirmed", "Recovered", "Deaths"])
+        # Province/State reference data
+        prov_state_list = []
+        for dataset in self.full_dataset_raw:
+            prov_state = pd.DataFrame(dataset['new'].iloc[:, 0:2].drop_duplicates(keep='first').dropna().reset_index().drop(["index"],axis=1))
+            prov_state_list.append(prov_state)
+        dfps = pd.concat([prov_state_list[0], prov_state_list[1], prov_state_list[2]], ignore_index=True)
+        province_state_df = dfps.drop_duplicates(keep='first')
+        province_state_df.iloc[0,0] = "None"
+        # Countries-continents reference data
+        base_path = "data/reference/"
+        countries_continents_path = base_path + "countries_continents.csv"
+        countries_continents_df=pd.read_csv(countries_continents_path, index_col=0)
+        # Country reference data
+        base_path = "data/reference/"
+        country_path = base_path + "country.csv"
+        country_df=pd.read_csv(country_path, index_col=0)
+        # Combine all reference data into a list
+        reference_data_list = [continents_df, country_df, province_state_df, countries_continents_df, types_df]
+        return reference_data_list
     
     def loadOldReferenceData(self):
-        continents = ["Africa", "Antarctica", "Asia", "Europe", "North America", "Oceania", "South America", "None"]
-        continents_df = pd.DataFrame(continents)
-        return continents_df
+        base_path = "data/reference/"
+        continent_path = base_path + "continent.csv"
+        country_path = base_path + "country.csv"
+        province_state_path = base_path + "province_state.csv"
+        countries_continents_path = base_path + "countries_continents.csv"
+        types_path = base_path + "types.csv"
+        reference_data_paths = [continent_path, country_path, province_state_path, countries_continents_path, types_path]
+        reference_data_list = []
+        for path in reference_data_paths:
+            df = pd.read_csv(path, index_col=0)
+            reference_data_list.append(df)
+        return reference_data_list
 
     def standardizeNewData(self):
         full_dataset_cleaned = []
@@ -67,10 +100,7 @@ class CovidDataset:
 #             print(i)
             # Create list of region codes present in the dataset and add column
             region_codes = []
-            prov_state = countries.iloc[:, 0].drop_duplicates(keep='first')
-            prov_state = prov_state.reset_index()
-            prov_state = prov_state.drop(["index"],axis=1)
-            prov_state.iloc[0, :] = "No province/state"
+            prov_state = countries.iloc[:, 0].drop_duplicates(keep='first').reset_index().drop(["index"],axis=1)
             for region in countries.iloc[:,0]:
                 if isinstance(region, str):
                     pass
@@ -131,8 +161,7 @@ class CovidDataset:
                 cases_full_melt = cases_full_melt.append(melted_df)
             cases_full_melt['variable'] = pd.to_datetime(cases_full_melt['variable'],infer_datetime_format=True)
             cases_full_melt.columns = ['region_code', 'continent_code', 'country_code', 'date', 'count']
-#             cases_full_melt.astype({'count': 'int32',}).dtypes
-            
+            cases_full_melt['case_type'] = i
             full_dataset_cleaned.append(cases_full_melt)
         self.full_dataset_cleaned = full_dataset_cleaned
     
