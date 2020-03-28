@@ -65,7 +65,7 @@ class CovidDataset:
             prov_state_list.append(prov_state)
         dfps = pd.concat([prov_state_list[0], prov_state_list[1], prov_state_list[2]], ignore_index=True)
         province_state_df = dfps.drop_duplicates(keep='first')
-        province_state_df.iloc[0,0] = "None"
+        # province_state_df.iloc[0,0] = "None"
         # Countries-continents reference data
         base_path = "data/reference/"
         countries_continents_path = base_path + "countries_continents.csv"
