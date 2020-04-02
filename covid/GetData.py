@@ -206,6 +206,18 @@ class CovidDataset:
         df_diff = pd.concat([old_df,new_df]).drop_duplicates(keep=False)
         if df_diff.empty:
             print("No changes in data detected")
+    
+    def deduplicate(self, column_name: str):
+        item_list = []
+        for dataset in self.full_dataset_raw:
+            items = pd.DataFrame(dataset['new'][[column_name]].drop_duplicates(keep='first').dropna().reset_index().drop(["index"],axis=1))
+            item_list.append(items)
+        concatenated_df = pd.concat([item_list[0], item_list[1], item_list[2]], ignore_index=True)
+        item_df = concatenated_df.drop_duplicates(keep='first')
+        item_ids = list(range(0, len(item_df)))
+        id_column_name = column_name + '_id'
+        item_df[id_column_name] = item_ids
+        return item_df
 
 
 
