@@ -220,7 +220,6 @@ class CovidDataset:
         return item_df
 
 
-
 def make_dataframe(url, data_format="csv"):
     if data_format == "xls":
         page = requests.get(url).text
