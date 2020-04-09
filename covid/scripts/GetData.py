@@ -6,9 +6,14 @@ from bs4 import BeautifulSoup
 import sys
 import math
 from datetime import date
+import os
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+timeseries_data_path = os.path.join(BASE_DIR, 'covid/data/timeseries')
+today = date.today()
 class CovidDataset:
     def __init__(self):
+        
         self.sources = {
             "confirmed": {
                 "url": "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv",
@@ -37,10 +42,9 @@ class CovidDataset:
             }
         self.full_dataset_raw = [self.confirmed_data_raw, self.recovered_data_raw, self.deaths_data_raw]
 
-        self.old_reference_data = self.loadOldReferenceData()
+        self.reference_data = self.loadReferenceData()
         self.needs_reference_data_refresh = False
         self.needs_timeseries_data_refresh = False
-
 
     def getNewData(self, data_type):
         """Input url of csv, returns dataframe"""
@@ -54,135 +58,130 @@ class CovidDataset:
 
     def createNewReferenceData(self):
         # Continents reference data
+        continents_df = []
         continents = ["Africa", "Antarctica", "Asia", "Europe", "North America", "Oceania", "South America", "None"]
         continents_df = pd.DataFrame(continents)
-        # Types reference data
-        types_df = pd.DataFrame(["Confirmed", "Recovered", "Deaths"])
-        # Province/State reference data
-        prov_state_list = []
-        for dataset in self.full_dataset_raw:
-            prov_state = pd.DataFrame(dataset['new'].iloc[:, 0:2].drop_duplicates(keep='first').dropna().reset_index().drop(["index"],axis=1))
-            prov_state_list.append(prov_state)
-        dfps = pd.concat([prov_state_list[0], prov_state_list[1], prov_state_list[2]], ignore_index=True)
-        province_state_df = dfps.drop_duplicates(keep='first')
-        # province_state_df.iloc[0,0] = "None"
+        continent_ids = list(range(0, len(continents)))
+        continent_id_column_name = 'continent_id'
+        continents_df[continent_id_column_name] = continent_ids
+        continents_df.columns = ['name', 'continent_id']
         # Countries-continents reference data
         base_path = "data/reference/"
-        countries_continents_path = base_path + "countries_continents.csv"
+        countries_continents_path = base_path + "country_continent.csv"
         countries_continents_df=pd.read_csv(countries_continents_path, index_col=0)
+        # Types reference data
+        types_df = pd.DataFrame(["Confirmed", "Recovered", "Deaths"])
+        type_ids = list(range(0, len(types_df)))
+        type_id_column_name = 'type_id'
+        types_df[type_id_column_name] = type_ids
+        types_df.columns = ['name', 'type_id']
+        # Province/State reference data
+        province_state_df = self.deduplicate("Province/State", by_column_range=True, up_to_column=4)
         # Country reference data
-        base_path = "data/reference/"
-        country_path = base_path + "country.csv"
-        country_df=pd.read_csv(country_path, index_col=0)
+        country_df = self.deduplicate("Country/Region", by_column_range=True, up_to_column=4, summarize=True, summary_column='Country/Region')
+        province_state_df_merged = pd.merge(province_state_df, country_df, how='inner', on='Country/Region', left_index=False, right_index=False, sort=False,
+         suffixes=('_x', '_y'), copy=True, indicator=False, validate=None)
+        province_state_df_merged = province_state_df_merged.drop('Country/Region', axis=1).drop('Lat_y', axis=1).drop('Long_y', axis=1)
+        province_state_df_merged.columns = ['name', 'lat', 'long', 'province_state_id', 'country_id']
+        country_df_merged = pd.merge(country_df, countries_continents_df, how='inner', on='Country/Region', left_index=False, right_index=False, sort=False,
+         suffixes=('_x', '_y'), copy=True, indicator=False, validate=None)
+        country_df_merged = country_df_merged.drop('Continent', axis=1)
+        country_df_merged.columns = ['name', 'lat', 'long', 'country_id', 'continent_id']
         # Combine all reference data into a list
-        reference_data_list = [continents_df, country_df, province_state_df, countries_continents_df, types_df]
-        return reference_data_list
+        reference_data_list = [continents_df, countries_continents_df, country_df_merged, province_state_df_merged, types_df]
+        keys = ['continent', 'country_continent','country', 'province_state', 'types']
+        values = reference_data_list
+        reference_data_dict = dict(zip(keys, values))
+        self.new_reference_data = reference_data_dict
+        return reference_data_dict
     
-    def loadOldReferenceData(self):
+    def loadReferenceData(self):
         base_path = "data/reference/"
         continent_path = base_path + "continent.csv"
         country_path = base_path + "country.csv"
         province_state_path = base_path + "province_state.csv"
-        countries_continents_path = base_path + "countries_continents.csv"
+        countries_continents_path = base_path + "country_continent.csv"
         types_path = base_path + "types.csv"
-        reference_data_paths = [continent_path, country_path, province_state_path, countries_continents_path, types_path]
+        reference_data_paths = [continent_path, countries_continents_path, country_path, province_state_path, types_path]
         reference_data_list = []
         for path in reference_data_paths:
             df = pd.read_csv(path, index_col=0)
             reference_data_list.append(df)
-        return reference_data_list
-
+        keys = ['continent', 'country_continent','country', 'province_state', 'types']
+        values = reference_data_list
+        reference_data_dict = dict(zip(keys, values))
+        return reference_data_dict
+    
+    def deduplicate(self, column_name: str, by_column_range=False, up_to_column=4, summarize=False, summary_column='test'):
+        item_list = []
+        if by_column_range==True and summarize==False:
+            for dataset in self.full_dataset_raw:
+                items = pd.DataFrame(dataset['new'].iloc[:,0:up_to_column].drop_duplicates(keep='first').dropna().reset_index().drop(["index"],axis=1))
+                item_list.append(items)
+        elif by_column_range==True and summarize==True:
+            for dataset in self.full_dataset_raw:
+                data_by_column = pd.DataFrame(dataset['new'].iloc[:,0:up_to_column]).groupby(summary_column, as_index=False).mean()
+#                 print(data_by_column)
+                items = data_by_column.iloc[:,0:up_to_column].drop_duplicates(subset=summary_column, keep='first').dropna().reset_index()
+                item_list.append(data_by_column)
+        else:
+            for dataset in self.full_dataset_raw:
+                items = pd.DataFrame(dataset['new'][[column_name]].drop_duplicates(keep='first').dropna().reset_index().drop(["index"],axis=1))
+                item_list.append(items)
+        concatenated_df = pd.concat([item_list[0], item_list[1], item_list[2]], ignore_index=True)
+        item_df = concatenated_df.drop_duplicates(subset=column_name, keep='first')
+        item_ids = list(range(0, len(item_df)))
+        id_column_name = column_name + '_id'
+        item_df[id_column_name] = item_ids
+        return item_df
+    
+    def saveData(self):
+        timeseries_filenames = ["confirmed", "recovered", "deaths"]
+        reference_filenames = ['continent', 'country_continent','country', 'province_state', 'types']
+        base_dir_split = "data/timeseries/daily_split/"
+        base_dir_combined = "data/timeseries/daily_combined/"
+        base_dir_reference = "data/reference/"
+        for i, item in enumerate(self.full_dataset_cleaned_list):
+            filename = base_dir_split + str(date.today()) + str(timeseries_filenames[i]) + ".csv" 
+            item.to_csv(filename)
+        filename_combined = base_dir_combined + str(date.today()) + "-combined.csv" 
+        self.full_dataset_cleaned_combined.to_csv(filename_combined)
+        
+        for i, item in enumerate(self.new_reference_data.items()):
+            filename = base_dir_reference + str(reference_filenames[i]) + ".csv"
+            if reference_filenames[i]=='country_continent':
+                continue
+            item[1].to_csv(filename, index=False)
+            
     def standardizeNewData(self):
         full_dataset_cleaned = []
         for i, dataset in enumerate(self.full_dataset_raw):
-            countries = dataset['new'].iloc[:,:4]
-            timeseries = dataset['new'].iloc[:,4:]
-#             print(i)
-            # Create list of region codes present in the dataset and add column
-            region_codes = []
-            prov_state = countries.iloc[:, 0].drop_duplicates(keep='first').reset_index().drop(["index"],axis=1)
-            for region in countries.iloc[:,0]:
-                if isinstance(region, str):
-                    pass
-                elif np.isnan(region):
-                    region_codes.append(0)
-                    continue
-                for i, item in enumerate(prov_state.iloc[:,0]):
-                    if item == region:
-                        region_codes.append(i)
-            countries["region_codes"] = region_codes
-
-            # Create list of continent codes and add column
-            continents = []
-            df_countries_continents = pd.read_csv("data/reference/countries_continents.csv", index_col=0)
-            for item in countries.iloc[:,1]:
-                old_size = len(continents)
-                for country in df_countries_continents.iterrows():
-                    if item==country[1][1]:
-                        continents.append(country[1][0])
-            
-                new_size = len(continents)
-                if old_size==new_size:
-                    continents.append("NA")
-            for i, line in enumerate(countries.iterrows()):
-                if line[1][-1]=="NA":
-                    print(line)
-            countries["continent"] = continents
-            
-            continent_codes = []
-            continents_df = pd.read_csv("data/reference/continent.csv", index_col=0)
-            for continent in countries.iloc[:,-1]:
-                if isinstance(continent, str):
-                    pass
-                elif np.isnan(continent):
-                    print("Not a continent")
-                for i, item in enumerate(continents_df.iloc[:,0]):
-                    if item == continent:
-                        continent_codes.append(i)
-            countries["continent_codes"] = continent_codes
-
-            # Create and append list of country codes
-            country_codes = []
-            country_df = pd.read_csv("data/reference/country.csv", index_col=0)
-            for case in countries.iloc[:,1]:
-                for i, item in enumerate(country_df.iloc[:,0]):
-                    if item == case:
-                        country_codes.append(i)
-            countries['country_code'] = country_codes
-            
-            # Concatenate country and timeseries dataframes       
-            cases = countries.drop('Country/Region', axis=1).drop("continent", axis=1).drop("Lat", axis=1).drop("Long", axis=1).drop("Province/State", axis=1)
-            cases_full = pd.concat([cases, timeseries], axis=1)
-            cases_full_melt = pd.melt(cases_full, id_vars=['region_codes', 'continent_codes', 'country_code'], value_vars=['1/22/20'])
-            
+            # Join country_id, prov_state_id
+            dataset_merged_country = pd.merge(dataset['new'], self.new_reference_data['country'].iloc[:,[0,3]], how='inner', on=None, left_on='Country/Region', right_on='name', sort=False,
+                               suffixes=('_x', '_y'), copy=False, indicator=False, validate=None)
+            dataset_merged_province = pd.merge(dataset_merged_country, self.new_reference_data['province_state'].iloc[:,[0,3]], how='left', on=None, left_on='Province/State', right_on='name', sort=False,
+                               suffixes=('_x', '_y'), copy=False, indicator=False, validate=None)
+            # Drop Lat, Long, Province/State, Country/Region
+            cases = dataset_merged_province.drop('Country/Region', axis=1).drop("name_x", axis=1).drop("name_y", axis=1).drop("Lat", axis=1).drop("Long", axis=1).drop("Province/State", axis=1)
+            # Melt dataframe using date columns as rows
+            cases_melt = pd.melt(cases, id_vars=['country_id', 'province_state_id'], value_vars=['1/22/20'])
             # Join all melted time series columns
-            for i, column in enumerate(cases_full.iloc[:,4:]):
-                melted_df = pd.melt(cases_full, id_vars=['region_codes', 'continent_codes', 'country_code'], value_vars=[column])
-                cases_full_melt = cases_full_melt.append(melted_df)
-            cases_full_melt['variable'] = pd.to_datetime(cases_full_melt['variable'],infer_datetime_format=True)
-            cases_full_melt.columns = ['region_code', 'continent_code', 'country_code', 'date', 'count']
-            cases_full_melt['case_type'] = i
-            full_dataset_cleaned.append(cases_full_melt)
-        self.full_dataset_cleaned = full_dataset_cleaned
-    
-    def combineCleansedData(self):
-        full_dataset_combined = pd.DataFrame()
-        case_types = ["Confirmed", "Recovered", "Deaths"]
-        case_types_df = pd.DataFrame(case_types)
-        for i, dataset in enumerate(self.full_dataset_cleaned):
-            dataset['case_type'] = i
-            full_dataset_combined = full_dataset_combined.append(dataset, ignore_index=True)
-        self.full_dataset_combined = full_dataset_combined
-    
-    def saveData(self):
-        filenames = ["confirmed", "recovered", "deaths"]
-        base_dir_split = "data/timeseries/daily_split/"
-        base_dir_combined = "data/timeseries/daily_combined/"
-        for i, item in enumerate(self.full_dataset_cleaned):
-            filename = base_dir_split + str(date.today()) + str(filenames[i]) + ".csv" 
-            item.to_csv(filename)
-        filename_combined = base_dir_combined + str(date.today()) + "-combined.csv" 
-        self.full_dataset_combined.to_csv(filename_combined)
+            for j, column in enumerate(cases.iloc[:,1:-2]):
+                melted_df = pd.melt(cases, id_vars=['country_id', 'province_state_id'], value_vars=[column])
+                cases_melt = cases_melt.append(melted_df)
+            cases_melt.columns = ['country_id', 'province_state_id', 'date', 'count']
+            cases_melt['date'] = pd.to_datetime(cases_melt['date'],infer_datetime_format=True)
+            cases_melt["country_id"] = pd.to_numeric(cases_melt["country_id"], downcast='integer')
+            cases_melt["province_state_id"] = pd.to_numeric(cases_melt["province_state_id"], downcast='integer')
+            cases_melt["count"] = pd.to_numeric(cases_melt["count"], downcast='integer')
+            cases_melt['case_type'] = i
+            full_dataset_cleaned.append(cases_melt)
+        self.full_dataset_cleaned_list = full_dataset_cleaned
+        full_dataset_cleaned_combined = pd.concat(full_dataset_cleaned, ignore_index=True)
+        full_dataset_cleaned_combined['province_state_id'] = full_dataset_cleaned_combined['province_state_id'].astype('Int64')
+        full_dataset_cleaned_combined['country_id'] = full_dataset_cleaned_combined['country_id'].astype('Int64')
+        full_dataset_cleaned_combined['count'] = full_dataset_cleaned_combined['count'].astype('Int64')
+        self.full_dataset_cleaned_combined = full_dataset_cleaned_combined
 
     def validateData(self, data_type):
         # Validate reference data
@@ -206,36 +205,7 @@ class CovidDataset:
         df_diff = pd.concat([old_df,new_df]).drop_duplicates(keep=False)
         if df_diff.empty:
             print("No changes in data detected")
-    
-    def deduplicate(self, column_name: str):
-        item_list = []
-        for dataset in self.full_dataset_raw:
-            items = pd.DataFrame(dataset['new'][[column_name]].drop_duplicates(keep='first').dropna().reset_index().drop(["index"],axis=1))
-            item_list.append(items)
-        concatenated_df = pd.concat([item_list[0], item_list[1], item_list[2]], ignore_index=True)
-        item_df = concatenated_df.drop_duplicates(keep='first')
-        item_ids = list(range(0, len(item_df)))
-        id_column_name = column_name + '_id'
-        item_df[id_column_name] = item_ids
-        return item_df
 
-
-def make_dataframe(url, data_format="csv"):
-    if data_format == "xls":
-        page = requests.get(url).text
-        soup = BeautifulSoup(page, 'html.parser')
-        data_attribute = soup.find_all("a", attrs={"data-toggle": "tooltip"})
-
-        for link in data_attribute:
-            data_link = link.get('href')
-
-        with requests.Session() as s:
-            download = s.get(data_link).content
-            dataframe = pd.read_excel(download)
-        return dataframe
-    else:
-        dataframe = pd.read_csv(url)
-        return dataframe
 
 
 if __name__ == '__main__':
