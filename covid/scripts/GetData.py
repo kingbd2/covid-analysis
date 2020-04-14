@@ -7,25 +7,39 @@ import sys
 import math
 from datetime import date
 import os
+from os import listdir
+from os.path import isfile, join
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-timeseries_data_path = os.path.join(BASE_DIR, 'covid/data/timeseries')
-today = date.today()
 class CovidDataset:
+    
+    ### INITIALIZE ###
     def __init__(self):
+        # Create dataset paths and get latest data
+        self.BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(os.path.abspath(''))))
+        self.reference_data_path = os.path.join(BASE_DIR, 'covid/data/reference')
+        self.timeseries_combined_data_path = os.path.join(BASE_DIR, 'covid/data/timeseries/daily_combined')
+        self.timeseries_split_data_path = os.path.join(BASE_DIR, 'covid/data/timeseries/daily_split')
+        self.timeseries_combined_files = [f for f in listdir(timeseries_combined_data_path) if isfile(join(timeseries_combined_data_path, f))]
+        self.timeseries_split_files = [f for f in listdir(timeseries_split_data_path) if isfile(join(timeseries_split_data_path, f))]
+        latest_data_file = max(timeseries_combined_files)
+        self.latest_data_date = str(latest_data_file)[0:10]
         
+        # Compile dictionary of data sources
         self.sources = {
             "confirmed": {
                 "url": "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv",
-                "local_path": "data/timeseries/cases_confirmed.csv"
+                "local_path": str(self.timeseries_split_data_path) + '/' + str(self.latest_data_date) + 'confirmed.csv'
             },
             "recovered": {
                 "url": "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv",
-                "local_path": "data/timeseries/cases_confirmed.csv"    
+                "local_path": str(self.timeseries_split_data_path) + '/' + str(self.latest_data_date) + 'recovered.csv'    
             },
             "deaths": {
                 "url": "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv",
-                "local_path": "data/timeseries/cases_confirmed.csv"
+                "local_path": str(self.timeseries_split_data_path) + '/' + str(self.latest_data_date) + 'deaths.csv'
+            },
+            "combined": {
+                "local_path": str(timeseries_combined_data_path) + '/' + str(latest_data_date) + '-combined.csv'
             },
         }
         self.confirmed_data_raw = {
@@ -45,17 +59,9 @@ class CovidDataset:
         self.reference_data = self.loadReferenceData()
         self.needs_reference_data_refresh = False
         self.needs_timeseries_data_refresh = False
-
-    def getNewData(self, data_type):
-        """Input url of csv, returns dataframe"""
-        df = pd.read_csv(self.sources[str(data_type)]['url'])
-        return df
-
-    def getOldData(self, data_type):
-        """Input filepath of csv, returns dataframe"""
-        df = pd.read_csv(self.sources[str(data_type)]['local_path'])
-        return df
-
+    
+    ### CREATE DATASETS (REFERENCE AND TIMESERIES) ###
+    
     def createNewReferenceData(self):
         # Continents reference data
         continents_df = []
@@ -66,8 +72,8 @@ class CovidDataset:
         continents_df[continent_id_column_name] = continent_ids
         continents_df.columns = ['name', 'continent_id']
         # Countries-continents reference data
-        base_path = "data/reference/"
-        countries_continents_path = base_path + "country_continent.csv"
+        base_path = self.reference_data_path
+        countries_continents_path = base_path + "/country_continent.csv"
         countries_continents_df=pd.read_csv(countries_continents_path, index_col=0)
         # Types reference data
         types_df = pd.DataFrame(["Confirmed", "Recovered", "Deaths"])
@@ -96,12 +102,12 @@ class CovidDataset:
         return reference_data_dict
     
     def loadReferenceData(self):
-        base_path = "data/reference/"
-        continent_path = base_path + "continent.csv"
-        country_path = base_path + "country.csv"
-        province_state_path = base_path + "province_state.csv"
-        countries_continents_path = base_path + "country_continent.csv"
-        types_path = base_path + "types.csv"
+        base_path = self.reference_data_path
+        continent_path = base_path + "/continent.csv"
+        country_path = base_path + "/country.csv"
+        province_state_path = base_path + "/province_state.csv"
+        countries_continents_path = base_path + "/country_continent.csv"
+        types_path = base_path + "/types.csv"
         reference_data_paths = [continent_path, countries_continents_path, country_path, province_state_path, types_path]
         reference_data_list = []
         for path in reference_data_paths:
@@ -112,6 +118,17 @@ class CovidDataset:
         reference_data_dict = dict(zip(keys, values))
         return reference_data_dict
     
+    ### ACTIONS ###
+    def getNewData(self, data_type):
+        """Input url of csv, returns dataframe"""
+        df = pd.read_csv(self.sources[str(data_type)]['url'])
+        return df
+
+    def getOldData(self, data_type):
+        """Input filepath of csv, returns dataframe"""
+        df = pd.read_csv(self.sources[str(data_type)]['local_path'])
+        return df
+    
     def deduplicate(self, column_name: str, by_column_range=False, up_to_column=4, summarize=False, summary_column='test'):
         item_list = []
         if by_column_range==True and summarize==False:
@@ -121,7 +138,6 @@ class CovidDataset:
         elif by_column_range==True and summarize==True:
             for dataset in self.full_dataset_raw:
                 data_by_column = pd.DataFrame(dataset['new'].iloc[:,0:up_to_column]).groupby(summary_column, as_index=False).mean()
-#                 print(data_by_column)
                 items = data_by_column.iloc[:,0:up_to_column].drop_duplicates(subset=summary_column, keep='first').dropna().reset_index()
                 item_list.append(data_by_column)
         else:
@@ -137,18 +153,18 @@ class CovidDataset:
     
     def saveData(self):
         timeseries_filenames = ["confirmed", "recovered", "deaths"]
-        reference_filenames = ['continent', 'country_continent','country', 'province_state', 'types']
-        base_dir_split = "data/timeseries/daily_split/"
-        base_dir_combined = "data/timeseries/daily_combined/"
-        base_dir_reference = "data/reference/"
+        reference_filenames = ['continent', 'country_continent', 'country', 'province_state', 'types']
+        base_dir_split = self.timeseries_split_data_path
+        base_dir_combined = self.timeseries_combined_data_path
+        base_dir_reference = self.reference_data_path
         for i, item in enumerate(self.full_dataset_cleaned_list):
-            filename = base_dir_split + str(date.today()) + str(timeseries_filenames[i]) + ".csv" 
+            filename = base_dir_split + '/' + str(date.today()) + str(timeseries_filenames[i]) + ".csv" 
             item.to_csv(filename)
-        filename_combined = base_dir_combined + str(date.today()) + "-combined.csv" 
+        filename_combined = base_dir_combined + '/' + str(date.today()) + "-combined.csv" 
         self.full_dataset_cleaned_combined.to_csv(filename_combined)
         
         for i, item in enumerate(self.new_reference_data.items()):
-            filename = base_dir_reference + str(reference_filenames[i]) + ".csv"
+            filename = base_dir_reference + '/' + str(reference_filenames[i]) + ".csv"
             if reference_filenames[i]=='country_continent':
                 continue
             item[1].to_csv(filename, index=False)
