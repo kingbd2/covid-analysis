@@ -7,6 +7,8 @@ import sys
 import math
 from datetime import date
 import os
+from os import listdir
+from os.path import isfile, join
 from sqlalchemy import *
 
 class CovidDataset:
@@ -14,12 +16,12 @@ class CovidDataset:
     def __init__(self):
         # Create dataset paths and get latest data
         self.BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(os.path.abspath(''))))
-        self.reference_data_path = os.path.join(BASE_DIR, 'covid/data/reference')
-        self.timeseries_combined_data_path = os.path.join(BASE_DIR, 'covid/data/timeseries/daily_combined')
-        self.timeseries_split_data_path = os.path.join(BASE_DIR, 'covid/data/timeseries/daily_split')
-        self.timeseries_combined_files = [f for f in os.listdir(timeseries_combined_data_path) if os.isfile(os.path.join(timeseries_combined_data_path, f))]
-        self.timeseries_split_files = [f for f in os.listdir(timeseries_split_data_path) if os.isfile(os.path.join(timeseries_split_data_path, f))]
-        latest_data_file = max(timeseries_combined_files)
+        self.reference_data_path = os.path.join(self.BASE_DIR, 'poetry/covid/covid/data/reference')
+        self.timeseries_combined_data_path = os.path.join(self.BASE_DIR, 'poetry/covid/covid/data/timeseries/daily_combined')
+        self.timeseries_split_data_path = os.path.join(self.BASE_DIR, 'poetry/covid/covid/data/timeseries/daily_split')
+        self.timeseries_combined_files = [f for f in listdir(self.timeseries_combined_data_path) if isfile(os.path.join(self.timeseries_combined_data_path, f))]
+        self.timeseries_split_files = [f for f in listdir(self.timeseries_split_data_path) if isfile(os.path.join(self.timeseries_split_data_path, f))]
+        latest_data_file = max(self.timeseries_combined_files)
         self.latest_data_date = str(latest_data_file)[0:10]
         
         # Compile dictionary of data sources
@@ -37,7 +39,7 @@ class CovidDataset:
                 "local_path": str(self.timeseries_split_data_path) + '/' + str(self.latest_data_date) + 'deaths.csv'
             },
             "combined": {
-                "local_path": str(timeseries_combined_data_path) + '/' + str(latest_data_date) + '-combined.csv'
+                "local_path": str(self.timeseries_combined_data_path) + '/' + str(self.latest_data_date) + '-combined.csv'
             },
         }
         self.confirmed_data_raw = {
@@ -290,11 +292,18 @@ class CovidDatabase:
     def updateData(self):
         return 0
 
+# dataframe = CovidDataset()
+
+def compareData(database_df, datasource_df):
+    return database_df.equals(datasource_df)
+
 if __name__ == '__main__':
+    # print(dataframe)
+    source_df = CovidDataset().createNewReferenceData()
     cdb = CovidDatabase()
     timeseries = cdb.getTable('country')
-    print(timeseries)
+    print(timeseries, source_df)
     # url = str(sys.argv[1])
     # data_format = str(sys.argv[2])
     # df = make_dataframe(url, data_format)
-    # print(df)
+    # print(df)def compareData(database_df, datasource_df):
