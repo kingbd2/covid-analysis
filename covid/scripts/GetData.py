@@ -7,11 +7,9 @@ import sys
 import math
 from datetime import date
 import os
-from os import listdir
-from os.path import isfile, join
+from sqlalchemy import *
 
 class CovidDataset:
-    
     ### INITIALIZE ###
     def __init__(self):
         # Create dataset paths and get latest data
@@ -19,8 +17,8 @@ class CovidDataset:
         self.reference_data_path = os.path.join(BASE_DIR, 'covid/data/reference')
         self.timeseries_combined_data_path = os.path.join(BASE_DIR, 'covid/data/timeseries/daily_combined')
         self.timeseries_split_data_path = os.path.join(BASE_DIR, 'covid/data/timeseries/daily_split')
-        self.timeseries_combined_files = [f for f in listdir(timeseries_combined_data_path) if isfile(join(timeseries_combined_data_path, f))]
-        self.timeseries_split_files = [f for f in listdir(timeseries_split_data_path) if isfile(join(timeseries_split_data_path, f))]
+        self.timeseries_combined_files = [f for f in os.listdir(timeseries_combined_data_path) if os.isfile(os.path.join(timeseries_combined_data_path, f))]
+        self.timeseries_split_files = [f for f in os.listdir(timeseries_split_data_path) if os.isfile(os.path.join(timeseries_split_data_path, f))]
         latest_data_file = max(timeseries_combined_files)
         self.latest_data_date = str(latest_data_file)[0:10]
         
@@ -222,10 +220,81 @@ class CovidDataset:
         if df_diff.empty:
             print("No changes in data detected")
 
+class CovidDatabase:
+    ### Initialize ###
+    def __init__(self):
+        try:
+            COVID_DB_ENGINE_CONNECTION = os.getenv('COVID_DB_ENGINE_CONNECTION')
+            self.engine = create_engine(COVID_DB_ENGINE_CONNECTION, echo=True)
+            self.connection = self.engine.connect()
+        except AttributeError:
+            raise AttributeError('Could not find database connection environment variable. Please create it using "export COVID_DB_ENGINE_CONNECTION="postgresql+psycopg2://covid_superuser:PASSWORD@localhost:5432/covid".')
+        metadata = MetaData()
+        # Continent table
+        self.metadata = {
+            'continent': Table('continent', metadata,
+                Column('continent_id', Integer, primary_key=True),
+                Column('name', String(50), nullable=True),
+            ),
+            # Country table
+            'country': Table('country', metadata,
+                Column('country_id', Integer, primary_key=True),
+                Column('name', String(50), nullable=True),
+                Column('lat', Numeric, nullable=True),
+                Column('lat', Numeric, nullable=True),
+                Column('continent_id', Integer, ForeignKey("continent.continent_id"))
+            ),
+            # Province-state table
+            'province_state': Table('province_state', metadata,
+                Column('province_state_id', Integer, primary_key=True),
+                Column('name', String(50), nullable=True),
+                Column('lat', Numeric, nullable=True),
+                Column('lat', Numeric, nullable=True),
+                Column('country_id', Integer, ForeignKey("country.country_id"))
+            ),
+            # Type category table
+            'type_category': Table('type_category', metadata,
+                Column('type_category_id', Integer, primary_key=True),
+                Column('name', String(50), nullable=True),
+            ),
+            # Case table
+            'case_timeseries': Table('case_timeseries', metadata,
+                Column('case_timeseries_id', Integer, primary_key=True),
+                Column('count', Numeric, nullable=True),
+                Column('date', TIMESTAMP, nullable=True),
+                Column('case_type', Integer, ForeignKey("type_category.type_category_id")),
+                Column('country_id', Integer, ForeignKey("country.country_id")),
+                Column('province_state_id', Integer, ForeignKey("province_state.province_state_id"))
+            )
+        }
+    def getTable(self, table_name):
+        self.connection = self.engine.connect()
+        row_list=[]
+        with self.connection as con:
+            rs = con.execute("SELECT * FROM " + str(table_name))
+            for row in rs:
+                row_list.append(row)
 
+        row_df = pd.DataFrame(row_list)
+        if table_name=='province_state':
+            row_df.columns = ['province_state_id', 'name', 'lat', 'long', 'country_id']
+        elif table_name=='country':
+            row_df.columns = ['country_id', 'name', 'lat', 'long', 'continent_id']
+        elif table_name=='continent':
+            row_df.columns = ['continent_id', 'name']
+        elif table_name=='type_category':
+            row_df.columns = ['type_id', 'name']
+        else:
+            row_df.columns = ['case_timeseries_id','case_type', 'count', 'country_id', 'date', 'province_state_id']
+        return(row_df)
+    def updateData(self):
+        return 0
 
 if __name__ == '__main__':
-    url = str(sys.argv[1])
-    data_format = str(sys.argv[2])
-    df = make_dataframe(url, data_format)
-    print(df)
+    cdb = CovidDatabase()
+    timeseries = cdb.getTable('country')
+    print(timeseries)
+    # url = str(sys.argv[1])
+    # data_format = str(sys.argv[2])
+    # df = make_dataframe(url, data_format)
+    # print(df)
