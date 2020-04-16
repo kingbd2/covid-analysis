@@ -16,5 +16,7 @@ def group_by_location_order_by_date(db, location_type: str = "continent", locati
     row_list = []
     for row in rs:
         row_list.append(row)
-    result_dict = {'query_result': [dict(row) for row in row_list]}
+    result_dict = {
+        'location_type': str(location_type),
+        str(location_value): [dict(row) for row in row_list]}
     return result_dict

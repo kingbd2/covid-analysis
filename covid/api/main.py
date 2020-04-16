@@ -28,3 +28,8 @@ async def getTable(table_name: str, db: Session = Depends(get_db)):
 @app.get("/country/{country_name}/{case_type}")
 async def cases_by_country(db: Session = Depends(get_db), country_name: str = "Canada", case_type: str = "Confirmed"):
     return group_by_location_order_by_date(db, "country", country_name, case_type)
+
+# API endpoint to display cases by province_state
+@app.get("/province_state/{province_state_name}/{case_type}")
+async def cases_by_continent(db: Session = Depends(get_db), province_state: str = "Ontario", case_type: str = "Confirmed"):
+    return group_by_location_order_by_date(db, "province_state", province_state, case_type)
