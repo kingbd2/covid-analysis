@@ -20,7 +20,11 @@
           scales: {
             yAxes: [{
               ticks: {
-                beginAtZero: true
+                beginAtZero: false
+              },
+              scaleLabel: {
+                display: true,
+                labelString: 'Count',
               },
               gridLines: {
                 display: true
@@ -29,7 +33,11 @@
             xAxes: [{
               gridLines: {
                 display: false
-              }
+              },
+              scaleLabel: {
+                display: true,
+                labelString: 'Date',
+              },
             }]
           },
           legend: {
@@ -46,13 +54,16 @@
         datasets: [{
           label: 'Count',
           borderColor: '#249EBF',
-          pointBackgroundColor: 'white',
+          pointBackgroundColor: '#249EBF',
           borderWidth: 1,
           pointBorderColor: '#249EBF',
           backgroundColor: 'transparent',
           data: this.chartData
         }]
       }, this.options)
+    },
+    methods: {
+      // https://stackoverflow.com/questions/43728332/vue-chart-js-chart-is-not-updating-when-data-is-changing
     }
   }
 </script>

@@ -1,14 +1,19 @@
 <template>
   <div class="page-container">
+    <!-- Dashboard Information -->
     <article class="pa3 pa5-ns">
-      <h1 class="f3 f2-m f1-l">{{location_type}}: {{location_value}}</h1>
+      <h1 class="f3 f2-m f1-l">{{locationTypeFromAPI | capitalize}}: {{locationValueFromAPI}}</h1>
       <p class="measure lh-copy">
-        This is a count over time of all {{ case_type }} in {{ location_value }}
+        This is a count over time of all {{ case_type }} in {{ locationValueFromAPI }}
       </p>
     </article>
-    
+    <!-- UI Selectors -->
+    <location-type-selector v-on:typeToMain="onTypeUpdate"></location-type-selector>
+    <location-selector v-on:valueToMain="onValueUpdate"></location-selector>
+    <button type="submit" @click="render">Update chart</button>
+    <!-- Chart Container -->
     <div class="container">
-      <chart v-if="loaded" :chart-data="case_counts" :chart-labels="labels" :styles="myStyles"></chart>
+      <chart v-if="loaded" :chart-data="case_counts" :chart-labels="labels" :styles="myStyles" ref="chart"></chart>
       <div class="error-message" v-if="showError">
         {{ errorMessage }}
       </div>
@@ -18,40 +23,44 @@
 
 <script>
   import Chart from '~/components/Chart.vue'
+  import LocationSelector from '~/components/LocationSelector.vue'
+  import LocationTypeSelector from '~/components/LocationTypeSelector.vue'
   import session from '../store/api/session';
-  import * as d3 from 'd3'
   export default {
     components: {
-      Chart
+      Chart,
+      LocationSelector,
+      LocationTypeSelector
     },
     data() {
       return {
+        locationTypeSelection: 'country',
+        locationValueSelection: 'Canada',
         ids: [],
         case_counts: [],
         labels: [],
         case_type: '',
-        location_type: '',
-        location_value: '',
+        locationTypeFromAPI: '',
+        locationValueFromAPI: '',
         loaded: false,
         showError: false,
         errorMessage: 'There is an error, and this is the default message',
-        query_result: [],
         error: null,
         height: 300
       };
     },
     created() {
-      this.getTable()
+      this.getData()
     },
     methods: {
-      getTable() {
-        session.get('/country/Germany/Confirmed/')
+      getData() {
+        session.get('/'.concat(this.locationTypeSelection, '/', this.locationValueSelection, '/Confirmed'))
           .then(response => {
             console.log(response)
             this.case_counts = response.data.counts.map(count => count)
             this.labels = response.data.dates.map(date => date)
-            this.location_type = response.data.location_type
-            this.location_value = response.data.location_value
+            this.locationTypeFromAPI = response.data.location_type
+            this.locationValueFromAPI = response.data.location_value
             this.case_type = response.data.case_type
             this.loaded = true
           })
@@ -60,10 +69,19 @@
             this.showError = true
           })
       },
+      render() {
+        this.$refs.chart.renderChart()
+      },
       increase() {
         this.height += 10
+      },
+      onTypeUpdate(value) {
+        this.locationTypeSelection = value
+      },
+      onValueUpdate(value) {
+        this.locationValueSelection = value
+        this.getData()
       }
-
     },
     computed: {
       myStyles() {
@@ -71,6 +89,13 @@
           height: `${this.height}px`,
           position: 'relative'
         }
+      }
+    },
+    filters: {
+      capitalize: function (value) {
+        if (!value) return ''
+        value = value.toString()
+        return value.charAt(0).toUpperCase() + value.slice(1)
       }
     }
   }
@@ -80,31 +105,9 @@
   .container {
     margin: 0 auto;
     min-height: 50vh;
-    display: flex;
-    justify-content: center;
+    /* display: flex; */
+    /* justify-content: center;
     align-items: center;
-    text-align: center;
-  }
-
-  .title {
-    font-family: 'Quicksand', 'Source Sans Pro', -apple-system, BlinkMacSystemFont,
-      'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    display: block;
-    font-weight: 300;
-    font-size: 100px;
-    color: #35495e;
-    letter-spacing: 1px;
-  }
-
-  .subtitle {
-    font-weight: 300;
-    font-size: 42px;
-    color: #526488;
-    word-spacing: 5px;
-    padding-bottom: 15px;
-  }
-
-  .links {
-    padding-top: 15px;
+    text-align: center; */
   }
 </style>
