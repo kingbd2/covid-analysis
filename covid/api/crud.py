@@ -13,10 +13,18 @@ def group_by_location_order_by_date(db, location_type: str = "continent", locati
                                     GROUP BY co.name, t.name, ca.date \
                                         ORDER BY ca.date;"
         )
-    row_list = []
-    for row in rs:
-        row_list.append(row)
+    index_list = []
+    date_list = []
+    count_list = []
+    for i, row in enumerate(rs):
+        index_list.append(i)
+        date_list.append(row[2])
+        count_list.append(row[3])
     result_dict = {
+        'id': [item for item in index_list],
         'location_type': str(location_type),
-        str(location_value): [dict(row) for row in row_list]}
+        'location_value': str(location_value),
+        'case_type': str(case_type),
+        'dates': [item for item in date_list],
+        'counts':[item for item in count_list]}
     return result_dict
