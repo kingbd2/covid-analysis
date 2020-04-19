@@ -2,9 +2,9 @@
   <div>
     <select id="locationtypes" class="w-20 db h2 f6 bg-near-white ba b--sliver gray br-pill" v-model="locationValue">
       <option value="">Location Values</option>
-      <option v-for="value in allLocationValues.query_result" :key="value.name"> {{ value.name }}</option>      
+      <option v-for="value in allLocationValues.query_result" :key="value.name" v-on:click="emitToParent"> {{ value.name }}</option>      
     </select>
-    <button v-on:click="emitToParent">Click to update</button>
+    <!-- <button >Click to update</button> -->
   </div>
 </template>
 

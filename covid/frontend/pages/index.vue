@@ -13,7 +13,7 @@
     <button type="submit" @click="render">Update chart</button>
     <!-- Chart Container -->
     <div class="container">
-      <chart v-if="loaded" :chart-data="case_counts" :chart-labels="labels" :styles="myStyles" ref="chart"></chart>
+      <chart v-if="loaded" :chart-data="case_counts" :chart-labels="labels" :location-name="locationValueSelection" :styles="myStyles" ref="chart"></chart>
       <div class="error-message" v-if="showError">
         {{ errorMessage }}
       </div>
@@ -63,6 +63,7 @@
             this.locationValueFromAPI = response.data.location_value
             this.case_type = response.data.case_type
             this.loaded = true
+            
           })
           .catch(err => {
             this.errorMessage = err
@@ -70,7 +71,7 @@
           })
       },
       render() {
-        this.$refs.chart.renderChart()
+        this.$refs.chart.renderLineChart()
       },
       increase() {
         this.height += 10
@@ -81,6 +82,7 @@
       onValueUpdate(value) {
         this.locationValueSelection = value
         this.getData()
+        // this.render()
       }
     },
     computed: {
@@ -97,17 +99,24 @@
         value = value.toString()
         return value.charAt(0).toUpperCase() + value.slice(1)
       }
+    },
+    watch: {
+      // locationValueSelection: function () {
+      //     this.getData()
+      //     this.render()
+          
+      //   }
     }
   }
 </script>
 
 <style>
-  .container {
+  /* .container {
     margin: 0 auto;
     min-height: 50vh;
-    /* display: flex; */
-    /* justify-content: center;
+    display: flex; 
+    justify-content: center; 
     align-items: center;
-    text-align: center; */
-  }
+    text-align: center;
+  } */
 </style>
