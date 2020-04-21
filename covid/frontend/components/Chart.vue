@@ -53,24 +53,14 @@
       }
     },
     mounted() {
-      this.renderLineChart();
-
-      // this.renderChart({
-      //   labels: this.chartLabels,
-      //   datasets: [{
-      //     label: 'Count',
-      //     borderColor: '#249EBF',
-      //     pointBackgroundColor: '#249EBF',
-      //     borderWidth: 1,
-      //     pointBorderColor: '#249EBF',
-      //     backgroundColor: 'transparent',
-      //     data: this.chartData
-      //   }]
-      // }, this.options)
+      this.renderLineChart(this.chartData, this.options);
     },
     methods: {
       // https://stackoverflow.com/questions/43728332/vue-chart-js-chart-is-not-updating-when-data-is-changing
-      renderLineChart: function () {
+      renderLineChart: function (data, options) {
+        // if (this.$data._chart) {
+        //   this.$data._chart.destroy();
+        // }
         this.renderChart({
           labels: this.chartLabels,
           datasets: [{
@@ -80,26 +70,21 @@
             borderWidth: 1,
             pointBorderColor: '#249EBF',
             backgroundColor: 'transparent',
-            data: this.chartData
+            data: data
           }]
-        }, this.options)
+        }, options)
       },
       watch: {
         chartData: function () {
+          console.log(this._chart)
           this._chart.destroy();
           //this.renderChart(this.data, this.options);
-          this.renderLineChart();
-          
+          this.renderLineChart(this.newData, this.options);
+          // console.log(this.$data._chart)
         },
-        chartLabels: function () {
-          this._chart.destroy();
-          //this.renderChart(this.data, this.options);
-          this.renderLineChart();
-          
-        }
       },
       computed: {
-        chartData: function () {
+        newData: function () {
           return this.chartData;
         }
       },

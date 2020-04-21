@@ -46,7 +46,37 @@
         showError: false,
         errorMessage: 'There is an error, and this is the default message',
         error: null,
-        height: 300
+        height: 300,
+        options: {
+          scales: {
+            yAxes: [{
+              ticks: {
+                beginAtZero: false
+              },
+              scaleLabel: {
+                display: true,
+                labelString: 'Count',
+              },
+              gridLines: {
+                display: true
+              }
+            }],
+            xAxes: [{
+              gridLines: {
+                display: false
+              },
+              scaleLabel: {
+                display: true,
+                labelString: 'Date',
+              },
+            }]
+          },
+          legend: {
+            display: false
+          },
+          responsive: true,
+          maintainAspectRatio: true
+        }
       };
     },
     created() {
@@ -71,7 +101,7 @@
           })
       },
       render() {
-        this.$refs.chart.renderLineChart()
+        this.$refs.chart.renderLineChart(this.case_counts, this.options)
       },
       increase() {
         this.height += 10
@@ -82,7 +112,7 @@
       onValueUpdate(value) {
         this.locationValueSelection = value
         this.getData()
-        // this.render()
+        this.render()
       }
     },
     computed: {
@@ -100,23 +130,21 @@
         return value.charAt(0).toUpperCase() + value.slice(1)
       }
     },
-    watch: {
-      // locationValueSelection: function () {
-      //     this.getData()
-      //     this.render()
-          
-      //   }
-    }
+    // watch: {
+    //   locationValueSelection: function () {
+    //       this.getData()
+    //     }
+    // }
   }
 </script>
 
 <style>
-  /* .container {
+  .container {
     margin: 0 auto;
     min-height: 50vh;
     display: flex; 
     justify-content: center; 
     align-items: center;
     text-align: center;
-  } */
+  }
 </style>
