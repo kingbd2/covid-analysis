@@ -1,9 +1,9 @@
 import Vuex from 'vuex'
 import {
   posts
-} from './api/api'
+} from '../api/endpoints'
 
-import session from './api/session';
+import session from '../api/session';
 
 const createStore = () => {
   return new Vuex.Store({

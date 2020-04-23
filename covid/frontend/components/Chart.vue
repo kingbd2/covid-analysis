@@ -2,9 +2,18 @@
   import {
     Line
   } from 'vue-chartjs'
+  import session from '../api/session';
   export default {
     extends: Line,
     props: {
+      locationType: {
+        type: String,
+        required: false
+      },
+      locationValue: {
+        type: String,
+        required: false
+      },
       chartData: {
         type: Array | Object,
         required: false
@@ -20,6 +29,16 @@
     },
     data() {
       return {
+        ids: [],
+        case_counts: [],
+        labels: [],
+        case_type: '',
+        locationTypeFromAPI: '',
+        locationValueFromAPI: '',
+        loaded: false,
+        showError: false,
+        errorMessage: 'There is an error, and this is the default message',
+        error: null,
         options: {
           scales: {
             yAxes: [{
@@ -56,11 +75,7 @@
       this.renderLineChart(this.chartData, this.options);
     },
     methods: {
-      // https://stackoverflow.com/questions/43728332/vue-chart-js-chart-is-not-updating-when-data-is-changing
       renderLineChart: function (data, options) {
-        // if (this.$data._chart) {
-        //   this.$data._chart.destroy();
-        // }
         this.renderChart({
           labels: this.chartLabels,
           datasets: [{
@@ -73,21 +88,7 @@
             data: data
           }]
         }, options)
-      },
-      watch: {
-        chartData: function () {
-          console.log(this._chart)
-          this._chart.destroy();
-          //this.renderChart(this.data, this.options);
-          this.renderLineChart(this.newData, this.options);
-          // console.log(this.$data._chart)
-        },
-      },
-      computed: {
-        newData: function () {
-          return this.chartData;
-        }
-      },
+      },      
     }
   }
 </script>

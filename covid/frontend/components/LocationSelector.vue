@@ -9,7 +9,7 @@
 </template>
 
 <script>
-  import session from '../store/api/session';
+  import session from '../api/session';
   export default {
     data() {
       return {

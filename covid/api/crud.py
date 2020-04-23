@@ -18,6 +18,7 @@ def get_latest_case_count(db, location_type: str = "continent", location_value: 
                                                     AND c.count_date IN (SELECT max(count_date) FROM case_timeseries) \
                                                         GROUP BY location.continent_name, location.country_name, type.name, c.count_date;"
                 )
+        # Need to update this query to provide province_state names 
         elif location_type=='country':
             rs = db.execute(
                 "SELECT location.name, type.name, c.count_date, c.count \
