@@ -3,6 +3,39 @@
 ## Create
 
 ## Read
+def get_countries_by_continent(db, continent_value: str = "North America"):
+    rs = db.execute(
+        "select cn.name, cr.name from continent cn join country cr on cr.continent_id=cn.continent_id where cn.name='" + str(continent_value) + "';"
+    )
+    country_list = []
+    index_list=[]
+    for i, row in enumerate(rs):
+        index_list.append(i)
+        country_list.append(row[1])
+    result_dict = {
+        'id': [item for item in index_list],
+        'location_value': str(continent_value),
+        'countries':[item for item in country_list]}
+    return result_dict
+
+def get_provinces_states_by_country(db, country_value: str = "Canada"):
+    rs = db.execute(
+        "select cr.name, p.name from country cr join province_state p on cr.country_id=p.country_id where cr.name='" + str(country_value) + "';"
+    )
+    province_state_list = []
+    index_list=[]
+    for i, row in enumerate(rs):
+        index_list.append(i)
+        province_state_list.append(row[1])
+    result_dict = {
+        'id': [item for item in index_list],
+        'location_value': str(country_value),
+        'countries':[item for item in province_state_list]}
+    return result_dict
+
+def get_provinces_states_by_continent():
+    return 0
+
 def get_latest_case_count(db, location_type: str = "continent", location_value: str = "North America", case_type: str = "Confirmed", sum_counts=False):
     if sum_counts==False:
         if location_type=='continent':

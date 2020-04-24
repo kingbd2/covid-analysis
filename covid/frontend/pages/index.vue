@@ -182,7 +182,7 @@
       "side content nav"
       "footer footer footer";
 
-    grid-template-columns: 200px 1fr 200px;
+    grid-template-columns: 400px 1fr 200px;
     grid-template-rows: auto 1fr auto;
     grid-gap: 10px;
 
