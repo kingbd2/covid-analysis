@@ -30,7 +30,7 @@ def get_provinces_states_by_country(db, country_value: str = "Canada"):
     result_dict = {
         'id': [item for item in index_list],
         'location_value': str(country_value),
-        'countries':[item for item in province_state_list]}
+        'provinces_states':[item for item in province_state_list]}
     return result_dict
 
 def get_provinces_states_by_continent():
@@ -93,7 +93,7 @@ def get_latest_case_count(db, location_type: str = "continent", location_value: 
                 )
         else:
             rs = db.execute(
-                "SELECT c.case_timeseries_id, location.name, type.name, c.count_date, sum(c.count) \
+                "SELECT location.name, type.name, c.count_date, sum(c.count) \
                     FROM case_timeseries c \
                         JOIN type_category type \
                             ON (c.case_type=type.type_category_id) \

@@ -64,6 +64,6 @@ async def group_by_location_order_by_date_endpoint(db: Session = Depends(get_db)
 
 # API endpoint to display cases by province_state
 @app.get(api_base + "province_state/{province_state_name}/{case_type}")
-async def group_by_location_order_by_date_endpoint(db: Session = Depends(get_db), province_state: str = "Ontario", case_type: str = "Confirmed"):
-    return group_by_location_order_by_date(db, "province_state", province_state, case_type)
+async def group_by_location_order_by_date_endpoint(db: Session = Depends(get_db), province_state_name: str = "Ontario", case_type: str = "Confirmed"):
+    return group_by_location_order_by_date(db, "province_state", province_state_name, case_type)
 

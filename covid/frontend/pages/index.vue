@@ -5,7 +5,7 @@
     </header>
 
     <aside>
-      <sidebar></sidebar>
+      <sidebar v-on:valueToMain="onSidebarUpdate"></sidebar>
     </aside>
 
     <nav>
@@ -14,12 +14,36 @@
 
     <main>
       <!-- Dashboard Information -->
-      
+
       <article class="pa3 pa5-ns">
-        <a class="f6 link dim br3 ph3 pv2 mb2 dib white bg-light-purple" @click="render">Refresh chart</a>
-        <h1 class="f3 f2-m f1-l">{{locationTypeFromAPI | capitalize}}: {{locationValueFromAPI}}</h1>
+        <div class="ph3">
+          <a class="f6 link dim br3 ph3 pv2 mb2 dib white bg-light-blue" @click="getCasesByDateData">Get new data</a>
+          <a class="f6 link dim br3 ph3 pv2 mb2 dib white bg-light-blue" @click="getTotalsData">Get new totals</a>
+          <a class="f6 link dim br3 ph3 pv2 mb2 dib white bg-light-purple" @click="render">Refresh chart</a>
+        </div>
+        <div class="ph3">
+
+          <a class="f6 link dim ph3 pv2 mb2 dib white bg-mid-gray" @click="selectConfirmed">Confirmed</a>
+          <a class="f6 link dim ph3 pv2 mb2 dib white bg-mid-gray" @click="selectDeaths">Deaths</a>
+          <a class="f6 link dim ph3 pv2 mb2 dib white bg-mid-gray" @click="selectRecovered">Recovered</a>
+        </div>
+        
+        <dl class="lh-title pa4 mt0">
+          <dt class="f6 b">Continent</dt>
+          <dd class="ml0">{{continent_selected}}</dd>
+          <dt class="f6 b">Country</dt>
+          <dd class="ml0">{{country_selected}}</dd>
+          <dt class="f6 b">Province or state</dt>
+          <dd class="ml0">{{province_state_selected}}</dd>
+        </dl>
+        <h1>Today</h1>
+        <dl class="dib mr5">
+          <dd class="f6 f5-ns b ml0">Total {{ case_type }} Cases in {{locationStringBuilder}}</dd>
+          <dd class="f3 f2-ns b ml0">{{caseTotals}}</dd>
+        </dl>
+        <!-- <h1 class="f3 f2-m f1-l">{{locationTypeFromAPI | capitalize}}: {{locationValueFromAPI}}</h1> -->
         <p class="measure lh-copy">
-          This is a count over time of all {{ case_type }} in {{ locationValueFromAPI }}
+          This is a count over time of all {{ case_type }} in {{ locationStringBuilder }}
         </p>
       </article>
 
@@ -36,9 +60,9 @@
           </chart>
         </div>
       </div>
-      <div class="error-message" v-if="showError">
+      <!-- <div class="error-message" v-if="showError">
         {{ errorMessage }}
-      </div>
+      </div> -->
     </main>
     <footer>
       <!-- <footer-component></footer-component> -->
@@ -67,7 +91,9 @@
     },
     data() {
       return {
-        continent_selected: 'North America',
+        continent_selected: '',
+        country_selected: '',
+        province_state_selected: '',
         locationTypeSelection: 'country',
         locationValueSelection: 'Canada',
         locationTypeFromAPI: '',
@@ -77,14 +103,51 @@
         showError: false,
         errorMessage: 'There is an error, and this is the default message',
         error: null,
+        case_counts: [],
+        labels: [],
+        caseTotals: null,
+        confirmedTotal: null,
+        recoveredTotal: null,
+        deathsTotal: null
       };
     },
     created() {
-      this.getData()
+      this.getInitialData()
     },
     methods: {
-      getData() {
+      getInitialData() {
         session.get('/'.concat(this.locationTypeSelection, '/', this.locationValueSelection, '/Confirmed'))
+          .then(response => {
+            console.log(response)
+            this.case_counts = response.data.counts.map(count => count)
+            this.labels = response.data.dates.map(date => date)
+            this.locationTypeFromAPI = response.data.location_type
+            this.locationValueFromAPI = response.data.location_value
+            this.case_type = response.data.case_type
+            this.loaded = true
+
+          })
+          .catch(err => {
+            this.errorMessage = err
+            this.showError = true
+          })
+      },
+      getTotalsData() {
+        session.get(this.totalsApiBuilder)
+          .then(response => {
+            console.log(response)
+            this.caseTotals = response.data.counts[0]
+            this.case_type = response.data.case_type
+            this.loaded = true
+
+          })
+          .catch(err => {
+            this.errorMessage = err
+            this.showError = true
+          })
+      },
+      getCasesByDateData() {
+        session.get(this.caseByDateApiBuilder)
           .then(response => {
             console.log(response)
             this.case_counts = response.data.counts.map(count => count)
@@ -103,11 +166,35 @@
       render() {
         this.$refs.chart.renderLineChart(this.case_counts, this.options)
       },
+      selectConfirmed() {
+        this.case_type = 'Confirmed'
+      },
+      selectDeaths() {
+        this.case_type = 'Deaths'
+      },
+      selectRecovered() {
+        this.case_type = 'Recovered'
+      },
       increase() {
         this.height += 10
       },
-      onTypeUpdate(value) {
-        this.locationTypeSelection = value
+      onSidebarUpdate(location_type, value) {
+        if (location_type == 'continent') {
+          this.continent_selected = value
+          this.locationTypeSelection = location_type
+        } else if (location_type == 'country') {
+          this.country_selected = value
+          this.locationTypeSelection = location_type
+        } else if (location_type == 'province_state') {
+          this.province_state_selected = value
+          this.locationTypeSelection = location_type
+        } else if (location_type == 'reset') {
+          this.continent_selected = ''
+          this.country_selected = ''
+          this.province_state_selected = ''
+          this.locationTypeSelection = ''
+        }
+
       },
 
     },
@@ -116,6 +203,36 @@
         return {
           height: `${this.height}px`,
           position: 'relative'
+        }
+      },
+      totalsApiBuilder() {
+        if (this.continent_selected && !this.country_selected && !this.province_state_selected) {
+          return '/'.concat('totals/', this.locationTypeSelection, '/', this.continent_selected, '/', this.case_type,
+            '?sum_counts=true')
+        } else if (this.country_selected && this.country_selected && !this.province_state_selected) {
+          return '/'.concat('totals/', this.locationTypeSelection, '/', this.country_selected, '/', this.case_type,
+            '?sum_counts=true')
+        } else if (this.country_selected && this.country_selected && this.province_state_selected) {
+          return '/'.concat('totals/', this.locationTypeSelection, '/', this.province_state_selected, '/', this
+            .case_type, '?sum_counts=true')
+        }
+      },
+      caseByDateApiBuilder() {
+        if (this.continent_selected && !this.country_selected && !this.province_state_selected) {
+          return '/'.concat('continent/', this.continent_selected, '/', this.case_type)
+        } else if (this.country_selected && this.country_selected && !this.province_state_selected) {
+          return '/'.concat('country/', this.country_selected, '/', this.case_type)
+        } else if (this.country_selected && this.country_selected && this.province_state_selected) {
+          return '/'.concat('province_state/', this.province_state_selected, '/', this.case_type)
+        }
+      },
+      locationStringBuilder() {
+        if (this.continent_selected && !this.country_selected && !this.province_state_selected) {
+          return ''.concat(this.continent_selected)
+        } else if (this.country_selected && this.country_selected && !this.province_state_selected) {
+          return ''.concat(this.continent_selected, ', ', this.country_selected)
+        } else if (this.country_selected && this.country_selected && this.province_state_selected) {
+          return ''.concat(this.continent_selected, ', ', this.country_selected, ', ', this.province_state_selected)
         }
       }
     },
